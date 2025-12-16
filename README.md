@@ -1,5 +1,7 @@
 # Cloud-Cord
 ===========
+![menu](menu.png)
+===========
 
 Cloud-Cord is a Python + Discord bot utility that uses Discord text channels as file storage.
 It can split large files, upload them as attachments to a dedicated channel, and later download and reconstruct the original file.
