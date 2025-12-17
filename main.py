@@ -36,8 +36,7 @@ def sanitize(text: str) -> str:
     text = re.sub(r"_{2,}", "_", text)          
     text = text.strip("-_")
     return text[:100] or "channel"
-@client.event
-async def on_ready():
+async def cli():
     print(f'We have logged in as {client.user}')
     banner = r"""
 ===========================================================
@@ -47,8 +46,7 @@ async def on_ready():
 |  | |    | |/ _ \| | | |/ _` | | |    / _ \| '__/ _` |   |
 |  | |____| | (_) | |_| | (_| | | |___| (_) | | | (_| |   |
 |   \_____|_|\___/ \__,_|\__,_|  \_____\___/|_|  \__,_|   |
-===========================================================                                                     
-                                                     
+===========================================================                                                                                                        
 """
     print("\033[92m" + banner + "\033[0m")
     guild = client.get_guild(guild_id)
@@ -56,9 +54,13 @@ async def on_ready():
         return ("\nMenu:\n 0) Upload file\n 1) Download file\n 2) List channels\n exit) Quit\nChoose: ")
     while True:
         try:
-            choice = input(menu()).strip()
+            loop = asyncio.get_running_loop()
+            choice = (await loop.run_in_executor(None, input, menu())).strip()
+
             if choice == '0':
-                filepath = input("File path: ").strip()
+                loop = asyncio.get_running_loop()
+                filepath = (await loop.run_in_executor(None, input, "File path: ")).strip()
+
                 if not os.path.isfile(filepath):
                     print("File not found.")
                     continue
@@ -78,7 +80,10 @@ async def on_ready():
                 finally:
                     parts.clear()
             elif choice == '1':
-                filename_ = input("File name (channel): ").strip()
+                filename_ = (await loop.run_in_executor(
+                None, input, "File name (channel): "
+                )).strip()
+
                 filename = sanitize(filename_)
                 channel = discord.utils.get(guild.text_channels, name=filename)
                 if channel is None:
@@ -120,4 +125,8 @@ async def on_ready():
         except KeyboardInterrupt:
             print("Exiting.")
             break
+@client.event
+async def on_ready():
+    print(f"Logged in as {client.user}")
+    asyncio.create_task(cli())
 client.run(DISCORD_TOKEN)
